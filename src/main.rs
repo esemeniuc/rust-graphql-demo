@@ -14,7 +14,7 @@ fn graphiql() -> content::Html<String> {
 fn get_graphql_handler(
     request: juniper_rocket::GraphQLRequest,
     schema: State<graphql::Schema>,
-    context: State<()>,
+    context: State<graphql::Context>,
 ) -> juniper_rocket::GraphQLResponse {
     request.execute(&schema, &context)
 }
@@ -23,7 +23,7 @@ fn get_graphql_handler(
 fn post_graphql_handler(
     request: juniper_rocket::GraphQLRequest,
     schema: State<graphql::Schema>,
-    context: State<()>,
+    context: State<graphql::Context>,
 ) -> juniper_rocket::GraphQLResponse {
     request.execute(&schema, &context)
 }
@@ -31,7 +31,7 @@ fn post_graphql_handler(
 fn main() {
     rocket::ignite()
         .manage(graphql::create_schema())
-        .manage(())
+        .manage(graphql::Context { 0: 99 }) //load the context with some demo data
         .mount(
             "/",
             rocket::routes![graphiql, get_graphql_handler, post_graphql_handler],

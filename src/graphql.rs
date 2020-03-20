@@ -1,5 +1,8 @@
-use juniper::FieldResult;
-use juniper::RootNode;
+use juniper::{FieldResult, RootNode, GraphQLEnum, GraphQLInputObject, GraphQLObject};
+
+pub struct Context(pub i32); //an example context of a single integer accessible to all queries
+
+impl juniper::Context for Context {}
 
 #[derive(GraphQLEnum)]
 enum Episode {
@@ -7,8 +10,6 @@ enum Episode {
     Empire,
     Jedi,
 }
-
-use juniper::{GraphQLEnum, GraphQLInputObject, GraphQLObject};
 
 #[derive(GraphQLObject)]
 #[graphql(description = "A humanoid creature in the Star Wars universe")]
@@ -27,10 +28,13 @@ struct NewHuman {
     home_planet: String,
 }
 
-pub struct QueryRoot;
+pub struct Query;
 
-#[juniper::object]
-impl QueryRoot {
+#[juniper::object(
+// Here we specify the context type for this object.
+Context = Context,
+)]
+impl Query {
     fn human(id: String) -> FieldResult<Human> {
         Ok(Human {
             id: "1234".to_owned(),
@@ -41,10 +45,10 @@ impl QueryRoot {
     }
 }
 
-pub struct MutationRoot;
+pub struct Mutation;
 
-#[juniper::object]
-impl MutationRoot {
+#[juniper::object(Context = Context)]
+impl Mutation {
     fn createHuman(new_human: NewHuman) -> FieldResult<Human> {
         Ok(Human {
             id: "1234".to_owned(),
@@ -55,8 +59,8 @@ impl MutationRoot {
     }
 }
 
-pub type Schema = RootNode<'static, QueryRoot, MutationRoot>;
+pub type Schema = RootNode<'static, Query, Mutation>;
 
 pub fn create_schema() -> Schema {
-    Schema::new(QueryRoot {}, MutationRoot {})
+    Schema::new(Query {}, Mutation {})
 }
